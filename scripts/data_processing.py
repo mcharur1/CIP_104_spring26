@@ -1,5 +1,9 @@
 import pandas as pd
 
+# THIS IS THE NEW SCRIPT
+
+a = "some varibale"
+
 # Margarita: [1] Merge Data, [2] Check Data types
 # Svenja: [3] check and handle missing values
 # Michael: [4] outlier check
