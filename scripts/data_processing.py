@@ -54,3 +54,21 @@ df_listings = pd.read_csv('data/processed/immobilier_all_cantons_allpages_snapsh
 
 # Merge Listing and GDP data
 df = pd.merge(df_listings, df_gdp, on='canton', how='left')
+
+# Changing date to date type (previously str)
+df['date_scraped'] = pd.to_datetime(df['date_scraped'])
+
+# Data types
+print(df.dtypes) # all date types are correct for the variable they represent.
+# canton                       str
+# date_scraped      datetime64[us]
+# price_chf                float64
+# living_area_m2           float64
+# rooms                    float64
+# location_text                str
+# listing_url                  str
+# source                       str
+# canton_name                  str
+# canton_gdp               float64
+
+
