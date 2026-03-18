@@ -1,5 +1,11 @@
 import pandas as pd
 
+# git pull
+# git status
+# git add
+# git commit -m "message"
+# git push
+
 # THIS IS THE NEW SCRIPT
 
 a = "some varibale"
