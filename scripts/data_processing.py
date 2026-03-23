@@ -22,7 +22,7 @@ pd.set_option('display.max_colwidth', None)
 # All three: [5] visualize -> think research questions...
 
 # Load and pre-process GDP data
-df_gdp = pd.read_csv('data/processed/canton_gdp_2022_clean.csv')
+df_gdp = pd.read_csv('../data/processed/canton_gdp_2022_clean.csv')
 df_gdp = df_gdp.rename(columns={'Canton': 'canton_name', '2022': 'canton_gdp'})
 
 # Add abbreviated canton column to GDP for later join
@@ -60,7 +60,7 @@ df_cantons = pd.DataFrame(list(CANTONS.items()), columns=['canton', 'canton_name
 df_gdp = pd.merge(df_gdp, df_cantons, on='canton_name', how='left')
 
 # Load and pre-process listing data
-df_listings = pd.read_csv('data/processed/immobilier_all_cantons_allpages_snapshot_p20.csv')
+df_listings = pd.read_csv('../data/processed/immobilier_all_cantons_allpages_snapshot_p20.csv')
 
 # Merge Listing and GDP data
 df = pd.merge(df_listings, df_gdp, on='canton', how='left')
