@@ -233,3 +233,57 @@ sns.scatterplot(x='canton_gdp', y='price_per_m2', data=df_grouped)
 
 plt.title("Median Price per m² vs GDP (Canton Level)")
 plt.show()
+
+
+### Margarita's plots
+'''
+In order to look at price impacts three main drivers were divided into tiers so we could see better how prices behave across different groups 
+for each driver. Then a boxplot is created for each driver to show the spread of the data and whether it changes by groups within each driver.
+Some findings are:
+1. GDP tier shows that high GDP per capita does not clearly separate the market showing overlapping charts for all groups.
+2. The room actually shows very similar distribution for the highest and lowest groups. This could make sense if we think that the initial cost of 
+an apartment is very similar and each added room only adds a marginal cost if none at all per m2.
+3. The living would be the most clear difference between the smallest and the largest group, where interestingly enough the smaller the apartment the 
+more expensive. This could be due to the fact that more expensive areas typically have smaller living spaces due to demand yet, the prices are very 
+high because of the high-demand location.
+
+All in all, although not logically what I expected, it seems that the most clear driver for price changes is living area.
+'''
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+df['gdp_tiers'] = pd.cut(
+    df['canton_gdp'],
+    bins=[0, 80_000, 110_000, float('inf')],
+    labels=['Low GDP\n(<80k)', 'Medium GDP\n(80–110k)', 'High GDP\n(>110k)'])
+ORDER = ['Low GDP\n(<80k)', 'Medium GDP\n(80–110k)', 'High GDP\n(>110k)']
+
+# Price by GDP tier — the main question
+sns.boxplot(x='gdp_tiers', y='log_price_per_m2', data=df,
+            order=ORDER, hue='gdp_tiers', legend=False, ax=axes[0, 0])
+axes[0, 0].set_title("Log price per m² by GDP tier", fontsize=12)
+axes[0, 0].set_xlabel("GDP tier")
+axes[0, 0].set_ylabel("Log price per m² (ln CHF/m²)")
+
+# Price by room count — bin rooms first so it's readable
+df['rooms_tiers'] = pd.cut(df['rooms'], bins=[0,2,3,4,5,float('inf')],
+                             labels=['≤2','3','4','5','6+'])
+sns.boxplot(x='rooms_tiers', y='log_price_per_m2', data=df,
+            hue='rooms_tiers', legend=False, ax=axes[0, 1])
+axes[0, 1].set_title("Log price per m² by room count", fontsize=12)
+axes[0, 1].set_xlabel("Rooms")
+axes[0, 1].set_ylabel("")
+
+# Price by living area — bin area into readable brackets
+df['area_tiers'] = pd.cut(df['living_area_m2'], bins=[0,50,80,120,float('inf')],
+                            labels=['<50m²','50–80m²','80–120m²','>120m²'])
+sns.boxplot(x='area_tiers', y='log_price_per_m2', data=df,
+            hue='area_tiers', legend=False, ax=axes[1, 0])
+axes[1, 0].set_title("Log price per m² by living area", fontsize=12)
+axes[1, 0].set_xlabel("Living area")
+axes[1, 0].set_ylabel("")
+
+axes[1, 1].set_visible(False)
+
+plt.suptitle("What drives log price per m²?", fontsize=13, y=1.02)
+plt.tight_layout()
+plt.show()
