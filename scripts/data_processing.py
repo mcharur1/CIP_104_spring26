@@ -22,7 +22,7 @@ pd.set_option('display.max_colwidth', None)
 # All three: [5] visualize -> think research questions...
 
 # Load and pre-process GDP data
-df_gdp = pd.read_csv('data/processed/canton_gdp_2022_clean.csv')
+df_gdp = pd.read_csv('../data/processed/canton_gdp_2022_clean.csv')
 df_gdp = df_gdp.rename(columns={'Canton': 'canton_name', '2022': 'canton_gdp'})
 
 # Add abbreviated canton column to GDP for later join
@@ -60,7 +60,7 @@ df_cantons = pd.DataFrame(list(CANTONS.items()), columns=['canton', 'canton_name
 df_gdp = pd.merge(df_gdp, df_cantons, on='canton_name', how='left')
 
 # Load and pre-process listing data
-df_listings = pd.read_csv('data/processed/immobilier_all_cantons_allpages_snapshot_p20.csv')
+df_listings = pd.read_csv('../data/processed/immobilier_all_cantons_allpages_snapshot_p20.csv')
 
 # Merge Listing and GDP data
 df = pd.merge(df_listings, df_gdp, on='canton', how='left')
@@ -233,3 +233,249 @@ sns.scatterplot(x='canton_gdp', y='price_per_m2', data=df_grouped)
 
 plt.title("Median Price per m² vs GDP (Canton Level)")
 plt.show()
+
+
+### Margarita's plots
+'''
+In order to look at price impacts three main drivers were divided into tiers so we could see better how prices behave across different groups 
+for each driver. Then a boxplot is created for each driver to show the spread of the data and whether it changes by groups within each driver.
+Some findings are:
+1. GDP tier shows that high GDP per capita does not clearly separate the market showing overlapping charts for all groups.
+2. The room actually shows very similar distribution for the highest and lowest groups. This could make sense if we think that the initial cost of 
+an apartment is very similar and each added room only adds a marginal cost if none at all per m2.
+3. The living would be the most clear difference between the smallest and the largest group, where interestingly enough the smaller the apartment the 
+more expensive. This could be due to the fact that more expensive areas typically have smaller living spaces due to demand yet, the prices are very 
+high because of the high-demand location.
+
+All in all, although not logically what I expected, it seems that the most clear driver for price changes is living area.
+'''
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+df['gdp_tiers'] = pd.cut(
+    df['canton_gdp'],
+    bins=[0, 80_000, 110_000, float('inf')],
+    labels=['Low GDP\n(<80k)', 'Medium GDP\n(80–110k)', 'High GDP\n(>110k)'])
+ORDER = ['Low GDP\n(<80k)', 'Medium GDP\n(80–110k)', 'High GDP\n(>110k)']
+
+# Price by GDP tier — the main question
+sns.boxplot(x='gdp_tiers', y='log_price_per_m2', data=df,
+            order=ORDER, hue='gdp_tiers', legend=False, ax=axes[0, 0])
+axes[0, 0].set_title("Log price per m² by GDP tier", fontsize=12)
+axes[0, 0].set_xlabel("GDP tier")
+axes[0, 0].set_ylabel("Log price per m² (ln CHF/m²)")
+
+# Price by room count — bin rooms first so it's readable
+df['rooms_tiers'] = pd.cut(df['rooms'], bins=[0,2,3,4,5,float('inf')],
+                             labels=['≤2','3','4','5','6+'])
+sns.boxplot(x='rooms_tiers', y='log_price_per_m2', data=df,
+            hue='rooms_tiers', legend=False, ax=axes[0, 1])
+axes[0, 1].set_title("Log price per m² by room count", fontsize=12)
+axes[0, 1].set_xlabel("Rooms")
+axes[0, 1].set_ylabel("")
+
+# Price by living area — bin area into readable brackets
+df['area_tiers'] = pd.cut(df['living_area_m2'], bins=[0,50,80,120,float('inf')],
+                            labels=['<50m²','50–80m²','80–120m²','>120m²'])
+sns.boxplot(x='area_tiers', y='log_price_per_m2', data=df,
+            hue='area_tiers', legend=False, ax=axes[1, 0])
+axes[1, 0].set_title("Log price per m² by living area", fontsize=12)
+axes[1, 0].set_xlabel("Living area")
+axes[1, 0].set_ylabel("")
+
+axes[1, 1].set_visible(False)
+
+plt.suptitle("What drives log price per m²?", fontsize=13, y=1.02)
+plt.tight_layout()
+plt.show()
+
+
+### Svenja's plots
+"""
+The same GDP tier classification was used as before to ensure consistency across results.
+To avoid redundancy, the GDP tiers should ideally be created once during the data preparation and reused throughout the analysis
+"""
+
+"""
+Apartments in high-GDP cantons tend to be slightly larger on average. However, the distributions overlap across all GDP tiers,
+so apartments in strong and weak cantons are often similar in size, meaning there are no clear differences based solely on GDP.
+Regarding the heatmap: On average, apartments in high-GDP cantons are larger and have slightly more rooms. However, these differences are moderate.
+A negative relationship can be observed between living area and price per square meter,
+indicating that smaller apartments tend to be more expensive per m² than larger ones (maybe because of typical housing market dynamics,
+where fixed costs and higher demand for smaller units lead to higher prices per square meter?).
+This suggests that housing characteristics, particularly living area, help explain differences in rental prices beyond GDP per capita.
+"""
+
+# Is there a difference between strong and weak cantons?
+plt.figure(figsize=(8, 5))
+sns.boxplot(x='gdp_tiers', y='living_area_m2', data=df)
+plt.title('Living area by GDP tier')
+plt.xlabel('GDP tier')
+plt.ylabel('Living area (m²)')
+plt.show()
+
+plt.figure(figsize=(8, 5))
+sns.violinplot(x='gdp_tiers', y='living_area_m2', data=df)
+plt.title('Distribution of living area by GDP tier')
+plt.xlabel('GDP tier')
+plt.ylabel('Living area (m²)')
+plt.show()
+
+# Heatmap
+grouped = df.groupby('gdp_tiers', observed=False)[['living_area_m2', 'rooms']].mean()
+plt.figure(figsize=(6, 4))
+sns.heatmap(grouped, annot=True, cmap='coolwarm')
+plt.title('Average housing characteristics by GDP tier')
+plt.show()
+
+# Housing Characteristics vs. Price (with GDP as color)
+plt.figure(figsize=(8, 5))
+sns.scatterplot(
+    x='living_area_m2',
+    y='price_per_m2',
+    hue='gdp_tiers',
+    data=df
+)
+plt.title('Price per m² vs living area')
+plt.xlabel('Living area (m²)')
+plt.ylabel('Price per m²')
+plt.show()
+
+# Does living area explain prices independently of GDP?
+sns.lmplot(
+    x='living_area_m2',
+    y='price_per_m2',
+    hue='gdp_tiers',
+    data=df,
+    height=5,
+    aspect=1.4
+)
+plt.title('Relationship between living area and price per m² by GDP tier')
+plt.show()
+
+
+
+
+### SEDA ###
+
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+
+# Three regression models are built to compare how well each factor group
+# explains log price per m². Each model isolates one factor group.
+model_gdp = smf.ols('log_price_per_m2 ~ canton_gdp', data=df).fit()
+model_housing = smf.ols('log_price_per_m2 ~ living_area_m2 + rooms', data=df).fit()
+model_full = smf.ols('log_price_per_m2 ~ canton_gdp + living_area_m2 + rooms', data=df).fit()
+
+# R² values from each model are extracted and visualised as a bar chart
+# to directly compare the explanatory power of each factor group.
+models = ['Economic\n(GDP)', 'Housing\nCharacteristics', 'Combined']
+r2_values = [model_gdp.rsquared, model_housing.rsquared, model_full.rsquared]
+
+plt.figure(figsize=(8, 5))
+bars = plt.bar(models, r2_values, color=['steelblue', 'coral', 'mediumseagreen'])
+plt.ylabel("R² (Explained Variance)")
+plt.title("Q3: Which factors explain rental prices per m²?")
+plt.ylim(0, 1)
+
+# R² values are displayed on top of each bar for readability
+for bar, val in zip(bars, r2_values):
+    plt.text(bar.get_x() + bar.get_width()/2, val + 0.01,
+             f'{val:.3f}', ha='center', fontsize=11)
+
+plt.tight_layout()
+plt.show()
+
+# A new feature 'city' is extracted from location_text by removing
+# the 4-digit postal code prefix where present.
+# For example: '8600 Dübendorf' → 'Dübendorf', 'Zürich' → 'Zürich' (unchanged)
+# The postal code is only removed for cleaning purposes — it does not determine
+# whether a listing is central or not. That decision is made separately
+# using the canton_centers dictionary based on the city name.
+
+
+df['city'] = df['location_text'].str.replace(r'^\d{4}\s*', '', regex=True).str.strip()
+print(df['city'].value_counts().head(20))
+
+# Each canton's administrative center (capital city) is defined manually
+# to serve as a proxy for central urban location
+canton_centers = {
+    'ZH': 'Zürich',
+    'BE': 'Bern',
+    'LU': 'Luzern',
+    'UR': 'Altdorf',
+    'SZ': 'Schwyz',
+    'OW': 'Sarnen',
+    'NW': 'Stans',
+    'GL': 'Glarus',
+    'ZG': 'Zug',
+    'FR': 'Fribourg',
+    'SO': 'Solothurn',
+    'BS': 'Basel',
+    'BL': 'Liestal',
+    'SH': 'Schaffhausen',
+    'AR': 'Herisau',
+    'AI': 'Appenzell',
+    'SG': 'St. Gallen',
+    'GR': 'Chur',
+    'AG': 'Aarau',
+    'TG': 'Frauenfeld',
+    'TI': 'Bellinzona',
+    'VD': 'Lausanne',
+    'VS': 'Sion',
+    'NE': 'Neuchâtel',
+    'GE': 'Geneva',
+    'JU': 'Delémont',
+}
+
+# A binary variable 'is_center' is created: 1 if the listing is located
+# in the canton's capital city, 0 otherwise
+df['is_center'] = df.apply(
+    lambda row: 1 if row['city'] == canton_centers.get(row['canton'], '') else 0,
+    axis=1
+)
+print(df['is_center'].value_counts())
+
+# A boxplot compares the distribution of log price per m²
+# between listings in canton centers and those outside
+
+sns.boxplot(x='is_center', y='log_price_per_m2', data=df,
+            hue='is_center', legend=False)
+plt.xticks([0, 1], ['Outside Center', 'City Center'])
+plt.title("Log price per m² — Center vs Outside")
+plt.xlabel("")
+plt.ylabel("Log price per m²")
+plt.show()
+
+"""The boxplot shows that listings in canton capital cities tend to have
+# a slightly higher median log price per m² compared to listings outside
+# the center. However, the distributions overlap significantly, suggesting
+# that while location (center vs. outside) has some effect on rental prices,
+# it is not a strong standalone predictor — consistent with the low R² value
+# observed in the regression model."""
+
+
+# A fourth model is added using the 'is_center' variable as a location proxy,
+# and the updated R² bar chart now includes location as a third factor group
+model_location = smf.ols('log_price_per_m2 ~ is_center', data=df).fit()
+
+models = ['Economic\n(GDP)', 'Housing\nCharacteristics', 'Location\n(Center)', 'Combined']
+r2_values = [model_gdp.rsquared, model_housing.rsquared,
+             model_location.rsquared, model_full.rsquared]
+
+plt.figure(figsize=(9, 5))
+bars = plt.bar(models, r2_values, color=['steelblue', 'coral', 'mediumpurple', 'mediumseagreen'])
+plt.ylabel("R² (Explained Variance)")
+plt.title("Q3: Which factors explain rental prices per m²?")
+plt.ylim(0, 0.15)
+
+# R² values are displayed on top of each bar for readability
+for bar, val in zip(bars, r2_values):
+    plt.text(bar.get_x() + bar.get_width()/2, val + 0.001,
+             f'{val:.3f}', ha='center', fontsize=11)
+
+plt.tight_layout()
+plt.show()
+
+"""This analysis extends the original question by introducing location as a third factor 
+group.A binary variable is_center was derived from the location_text column to indicate
+whether a listing is located in the canton's capital city."""
