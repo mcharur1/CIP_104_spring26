@@ -287,3 +287,66 @@ axes[1, 1].set_visible(False)
 plt.suptitle("What drives log price per m²?", fontsize=13, y=1.02)
 plt.tight_layout()
 plt.show()
+
+### Svenja's plots
+"""
+The same GDP tier classification was used as before to ensure consistency across results.
+To avoid redundancy, the GDP tiers should ideally be created once during the data preparation and reused throughout the analysis
+"""
+
+"""
+Apartments in high-GDP cantons tend to be slightly larger on average. However, the distributions overlap across all GDP tiers,
+so apartments in strong and weak cantons are often similar in size, meaning there are no clear differences based solely on GDP.
+Regarding the heatmap: On average, apartments in high-GDP cantons are larger and have slightly more rooms. However, these differences are moderate.
+A negative relationship can be observed between living area and price per square meter,
+indicating that smaller apartments tend to be more expensive per m² than larger ones (maybe because of typical housing market dynamics,
+where fixed costs and higher demand for smaller units lead to higher prices per square meter?).
+This suggests that housing characteristics, particularly living area, help explain differences in rental prices beyond GDP per capita.
+"""
+
+# Is there a difference between strong and weak cantons?
+plt.figure(figsize=(8, 5))
+sns.boxplot(x='gdp_tiers', y='living_area_m2', data=df)
+plt.title('Living area by GDP tier')
+plt.xlabel('GDP tier')
+plt.ylabel('Living area (m²)')
+plt.show()
+
+plt.figure(figsize=(8, 5))
+sns.violinplot(x='gdp_tiers', y='living_area_m2', data=df)
+plt.title('Distribution of living area by GDP tier')
+plt.xlabel('GDP tier')
+plt.ylabel('Living area (m²)')
+plt.show()
+
+# Heatmap
+grouped = df.groupby('gdp_tiers', observed=False)[['living_area_m2', 'rooms']].mean()
+plt.figure(figsize=(6, 4))
+sns.heatmap(grouped, annot=True, cmap='coolwarm')
+plt.title('Average housing characteristics by GDP tier')
+plt.show()
+
+# Housing Characteristics vs. Price (with GDP as color)
+plt.figure(figsize=(8, 5))
+sns.scatterplot(
+    x='living_area_m2',
+    y='price_per_m2',
+    hue='gdp_tiers',
+    data=df
+)
+plt.title('Price per m² vs living area')
+plt.xlabel('Living area (m²)')
+plt.ylabel('Price per m²')
+plt.show()
+
+# Does living area explain prices independently of GDP?
+sns.lmplot(
+    x='living_area_m2',
+    y='price_per_m2',
+    hue='gdp_tiers',
+    data=df,
+    height=5,
+    aspect=1.4
+)
+plt.title('Relationship between living area and price per m² by GDP tier')
+plt.show()
