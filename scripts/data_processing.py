@@ -352,7 +352,187 @@ sns.lmplot(
 plt.title('Relationship between living area and price per m² by GDP tier')
 plt.show()
 
+#  Michael Setup
+import matplotlib.gridspec as gridspec
+import matplotlib.patches as mpatches
+from scipy import stats
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
 
+#  Colour palette
+TIER_COLORS = {
+    'Low\n(<80k)': '#7BAFD4',
+    'Medium\n(80–110k)': '#F4A261',
+    'High\n(>110k)': '#E76F51',
+}
+palette = list(TIER_COLORS.values())
+
+df['price_per_m2'] = df['price_chf'] / df['living_area_m2']
+df['log_price_per_m2'] = np.log(df['price_per_m2'])
+
+tier_labels = ['Low\n(<80k)', 'Medium\n(80–110k)', 'High\n(>110k)']
+df['gdp_tier'] = pd.cut(
+    df['canton_gdp'],
+    bins=[0, 80_000, 110_000, float('inf')],
+    labels=tier_labels,
+)
+
+# Canton-level aggregates (used in plot 3)
+canton_med = (
+    df.groupby(['canton', 'gdp_tier'], observed=True)
+    .agg(
+        median_area=('living_area_m2', 'median'),
+        median_rooms=('rooms', 'median'),
+        median_price_m2=('price_per_m2', 'median'),
+        canton_gdp=('canton_gdp', 'first'),
+    )
+    .reset_index()
+)
+
+fig = plt.figure(figsize=(16, 13))
+fig.patch.set_facecolor('#F7F7F7')
+gs = gridspec.GridSpec(2, 2, figure=fig, hspace=0.42, wspace=0.32)
+
+TITLE_KW = dict(fontsize=13, fontweight='bold', pad=10, color='#222222')
+LABEL_KW = dict(fontsize=11, color='#444444')
+TICK_KW = dict(labelsize=9)
+ax1 = fig.add_subplot(gs[0, 0])
+
+char_stats = (
+    df.groupby('gdp_tier', observed=True)
+    .agg(median_area=('living_area_m2', 'median'),
+         median_rooms=('rooms', 'median'))
+    .reindex(tier_labels)
+)
+
+x, w = np.arange(len(tier_labels)), 0.35
+b1 = ax1.bar(x - w / 2, char_stats['median_area'], width=w,
+             color=palette, edgecolor='white', linewidth=0.8)
+b2 = ax1.bar(x + w / 2, char_stats['median_rooms'] * 20, width=w,
+             color=palette, edgecolor='white', linewidth=0.8, alpha=0.55, hatch='//')
+
+for bar, val in zip(b1, char_stats['median_area']):
+    ax1.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5,
+             f'{val:.0f} m²', ha='center', va='bottom', fontsize=9, color='#333333')
+for bar, val in zip(b2, char_stats['median_rooms']):
+    ax1.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5,
+             f'{val:.1f} rm', ha='center', va='bottom', fontsize=9, color='#555555')
+
+ax1.set_xticks(x)
+ax1.set_xticklabels(tier_labels, fontsize=9)
+ax1.set_ylabel('Median living area (m²)', **LABEL_KW)
+ax1.set_title('Housing Characteristics by GDP Tier', **TITLE_KW)
+ax1.set_facecolor('#FAFAFA')
+ax1.spines[['top', 'right']].set_visible(False)
+
+solid_p = mpatches.Patch(facecolor='#aaa', label='Median area (m²)')
+hatch_p = mpatches.Patch(facecolor='#aaa', hatch='//', alpha=0.55, label='Median rooms (×20)')
+ax1.legend(handles=[solid_p, hatch_p], fontsize=9)
+
+ax3 = fig.add_subplot(gs[1, 0])
+
+for tier, color in TIER_COLORS.items():
+    sub = canton_med[canton_med['gdp_tier'] == tier]
+    ax3.scatter(sub['median_area'], sub['median_price_m2'],
+                c=color, s=90, edgecolors='white', linewidths=0.8,
+                label=tier.replace('\n', ' '), zorder=3, alpha=0.9)
+    if len(sub) > 2:
+        m, b, *_ = stats.linregress(sub['median_area'], sub['median_price_m2'])
+        xs = np.linspace(sub['median_area'].min(), sub['median_area'].max(), 50)
+        ax3.plot(xs, m * xs + b, color=color, linewidth=1.5, alpha=0.6, linestyle='--')
+
+notable = ['ZG', 'GE', 'BS', 'UR', 'JU']
+for _, row in canton_med[canton_med['canton'].isin(notable)].iterrows():
+    ax3.annotate(row['canton'], (row['median_area'], row['median_price_m2']),
+                 textcoords='offset points', xytext=(5, 3), fontsize=8, color='#333333')
+
+ax3.set_xlabel('Median Living Area (m²)', **LABEL_KW)
+ax3.set_ylabel('Median Price per m² (CHF)', **LABEL_KW)
+ax3.set_title('Size vs. Price per m² at Canton Level', **TITLE_KW)
+ax3.set_facecolor('#FAFAFA')
+ax3.spines[['top', 'right']].set_visible(False)
+ax3.legend(title='GDP tier', fontsize=9, title_fontsize=9)
+ax3.tick_params(**TICK_KW)
+
+## Plot 3 – Partial R² bar
+ax4 = fig.add_subplot(gs[1, 1])
+
+df_m = df[['log_price_per_m2', 'canton_gdp', 'living_area_m2', 'rooms']].dropna()
+y = df_m['log_price_per_m2'].values
+
+
+def partial_r2(full_r2, reduced_r2):
+    return (full_r2 - reduced_r2) / (1 - reduced_r2)
+
+
+def fit_r2(X):
+    model = LinearRegression().fit(X, y)
+    return r2_score(y, model.predict(X))
+
+
+r2_full = fit_r2(df_m[['canton_gdp', 'living_area_m2', 'rooms']].values)
+r2_no_gdp = fit_r2(df_m[['living_area_m2', 'rooms']].values)
+r2_no_area = fit_r2(df_m[['canton_gdp', 'rooms']].values)
+r2_no_rooms = fit_r2(df_m[['canton_gdp', 'living_area_m2']].values)
+
+partial = {
+    'Canton GDP': partial_r2(r2_full, r2_no_gdp),
+    'Living Area': partial_r2(r2_full, r2_no_area),
+    'Rooms': partial_r2(r2_full, r2_no_rooms),
+}
+
+bar_colors = ['#7BAFD4', '#E76F51', '#F4A261']
+bars = ax4.barh(list(partial.keys()), list(partial.values()),
+                color=bar_colors, edgecolor='white', height=0.5)
+for bar, val in zip(bars, partial.values()):
+    ax4.text(val + 0.001, bar.get_y() + bar.get_height() / 2,
+             f'{val:.3f}', va='center', fontsize=10, color='#333333')
+
+ax4.set_xlabel('Partial R² (unique variance explained)', **LABEL_KW)
+ax4.set_title('Unique Explanatory Power\nfor Log Price per m²', **TITLE_KW)
+ax4.set_facecolor('#FAFAFA')
+ax4.spines[['top', 'right']].set_visible(False)
+ax4.tick_params(**TICK_KW)
+ax4.set_xlim(0, max(partial.values()) * 1.3)
+ax4.text(0.98, 0.05, f'Full model R² = {r2_full:.3f}',
+         transform=ax4.transAxes, ha='right', fontsize=9,
+         color='#666666', style='italic')
+
+
+
+## Final plots
+fig.suptitle(
+    'Housing Characteristics across GDP Tiers & Their Role in Explaining Rental Prices',
+    fontsize=14, fontweight='bold', color='#111111', y=1.01,
+)
+
+plt.show()
+
+## Housing Characteristics by GDP Tier -
+# Higher-GDP cantons do have larger apartments
+# (median ~88 m² vs ~80 m² in low-GDP cantons)
+# and a fractionally higher room count.
+# The differences are real but modest — housing size does vary
+# with economic strength, but not dramatically.
+
+## Size vs. Price per m² at Canton Level -
+# This is the most striking plot. Across all GDP tiers,
+# there's a negative relationship between
+# apartment size and price/m² — smaller apartments cost more
+# per square meter. This holds within
+# each tier (dashed regression lines), and notable cantons
+# like Zug (ZG) and Geneva (GE) command
+# premium prices despite not being the largest units.
+
+## Partial R² (Unique Explanatory Power) -
+# This quantifies exactly how much each variable uniquely
+# explains in log price/m²,
+# holding the others constant. Canton GDP (partial R² ≈ 0.042)
+# actually explains more
+# than living area (≈ 0.030) or rooms (≈ 0.017) individually —
+# but all three together only
+# explain ~7% of variance, meaning other factors (location,
+# transport access, amenities) dominate.
 
 
 ### SEDA ###
