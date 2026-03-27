@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-
+import statsmodels.formula.api as smf
 
 # git pull
 # git status
@@ -10,16 +10,10 @@ import numpy as np
 # git commit -m "message"
 # git push
 
-
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
 
-
-# Margarita: [1] Merge Data, [2] Check Data types
-# Svenja: [3] check and handle missing values
-# Michael: [4] outlier check
-# All three: [5] visualize -> think research questions...
 
 # Load and pre-process GDP data
 df_gdp = pd.read_csv('../data/processed/canton_gdp_2022_clean.csv')
@@ -535,35 +529,9 @@ plt.show()
 # transport access, amenities) dominate.
 
 
-### SEDA ###
-
-import statsmodels.formula.api as smf
-import matplotlib.pyplot as plt
-
-# Three regression models are built to compare how well each factor group
-# explains log price per m². Each model isolates one factor group.
-model_gdp = smf.ols('log_price_per_m2 ~ canton_gdp', data=df).fit()
-model_housing = smf.ols('log_price_per_m2 ~ living_area_m2 + rooms', data=df).fit()
-model_full = smf.ols('log_price_per_m2 ~ canton_gdp + living_area_m2 + rooms', data=df).fit()
-
-# R² values from each model are extracted and visualised as a bar chart
-# to directly compare the explanatory power of each factor group.
-models = ['Economic\n(GDP)', 'Housing\nCharacteristics', 'Combined']
-r2_values = [model_gdp.rsquared, model_housing.rsquared, model_full.rsquared]
-
-plt.figure(figsize=(8, 5))
-bars = plt.bar(models, r2_values, color=['steelblue', 'coral', 'mediumseagreen'])
-plt.ylabel("R² (Explained Variance)")
-plt.title("Q3: Which factors explain rental prices per m²?")
-plt.ylim(0, 1)
-
-# R² values are displayed on top of each bar for readability
-for bar, val in zip(bars, r2_values):
-    plt.text(bar.get_x() + bar.get_width()/2, val + 0.01,
-             f'{val:.3f}', ha='center', fontsize=11)
-
-plt.tight_layout()
-plt.show()
+# =============================================================
+# SEDA - NEW FEATURE
+# =============================================================
 
 # A new feature 'city' is extracted from location_text by removing
 # the 4-digit postal code prefix where present.
@@ -633,10 +601,13 @@ plt.show()
 # it is not a strong standalone predictor — consistent with the low R² value
 # observed in the regression model."""
 
-
 # A fourth model is added using the 'is_center' variable as a location proxy,
 # and the updated R² bar chart now includes location as a third factor group
+
 model_location = smf.ols('log_price_per_m2 ~ is_center', data=df).fit()
+model_gdp = smf.ols('log_price_per_m2 ~ canton_gdp', data=df).fit()
+model_housing = smf.ols('log_price_per_m2 ~ living_area_m2 + rooms', data=df).fit()
+model_full = smf.ols('log_price_per_m2 ~ canton_gdp + living_area_m2 + rooms', data=df).fit()
 
 models = ['Economic\n(GDP)', 'Housing\nCharacteristics', 'Location\n(Center)', 'Combined']
 r2_values = [model_gdp.rsquared, model_housing.rsquared,
