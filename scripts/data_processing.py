@@ -288,6 +288,7 @@ plt.suptitle("What drives log price per m²?", fontsize=13, y=1.02)
 plt.tight_layout()
 plt.show()
 
+
 ### Svenja's plots
 """
 The same GDP tier classification was used as before to ensure consistency across results.
@@ -350,3 +351,131 @@ sns.lmplot(
 )
 plt.title('Relationship between living area and price per m² by GDP tier')
 plt.show()
+
+
+
+
+### SEDA ###
+
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+
+# Three regression models are built to compare how well each factor group
+# explains log price per m². Each model isolates one factor group.
+model_gdp = smf.ols('log_price_per_m2 ~ canton_gdp', data=df).fit()
+model_housing = smf.ols('log_price_per_m2 ~ living_area_m2 + rooms', data=df).fit()
+model_full = smf.ols('log_price_per_m2 ~ canton_gdp + living_area_m2 + rooms', data=df).fit()
+
+# R² values from each model are extracted and visualised as a bar chart
+# to directly compare the explanatory power of each factor group.
+models = ['Economic\n(GDP)', 'Housing\nCharacteristics', 'Combined']
+r2_values = [model_gdp.rsquared, model_housing.rsquared, model_full.rsquared]
+
+plt.figure(figsize=(8, 5))
+bars = plt.bar(models, r2_values, color=['steelblue', 'coral', 'mediumseagreen'])
+plt.ylabel("R² (Explained Variance)")
+plt.title("Q3: Which factors explain rental prices per m²?")
+plt.ylim(0, 1)
+
+# R² values are displayed on top of each bar for readability
+for bar, val in zip(bars, r2_values):
+    plt.text(bar.get_x() + bar.get_width()/2, val + 0.01,
+             f'{val:.3f}', ha='center', fontsize=11)
+
+plt.tight_layout()
+plt.show()
+
+# A new feature 'city' is extracted from location_text by removing
+# the 4-digit postal code prefix where present.
+# For example: '8600 Dübendorf' → 'Dübendorf', 'Zürich' → 'Zürich' (unchanged)
+# The postal code is only removed for cleaning purposes — it does not determine
+# whether a listing is central or not. That decision is made separately
+# using the canton_centers dictionary based on the city name.
+
+
+df['city'] = df['location_text'].str.replace(r'^\d{4}\s*', '', regex=True).str.strip()
+print(df['city'].value_counts().head(20))
+
+# Each canton's administrative center (capital city) is defined manually
+# to serve as a proxy for central urban location
+canton_centers = {
+    'ZH': 'Zürich',
+    'BE': 'Bern',
+    'LU': 'Luzern',
+    'UR': 'Altdorf',
+    'SZ': 'Schwyz',
+    'OW': 'Sarnen',
+    'NW': 'Stans',
+    'GL': 'Glarus',
+    'ZG': 'Zug',
+    'FR': 'Fribourg',
+    'SO': 'Solothurn',
+    'BS': 'Basel',
+    'BL': 'Liestal',
+    'SH': 'Schaffhausen',
+    'AR': 'Herisau',
+    'AI': 'Appenzell',
+    'SG': 'St. Gallen',
+    'GR': 'Chur',
+    'AG': 'Aarau',
+    'TG': 'Frauenfeld',
+    'TI': 'Bellinzona',
+    'VD': 'Lausanne',
+    'VS': 'Sion',
+    'NE': 'Neuchâtel',
+    'GE': 'Geneva',
+    'JU': 'Delémont',
+}
+
+# A binary variable 'is_center' is created: 1 if the listing is located
+# in the canton's capital city, 0 otherwise
+df['is_center'] = df.apply(
+    lambda row: 1 if row['city'] == canton_centers.get(row['canton'], '') else 0,
+    axis=1
+)
+print(df['is_center'].value_counts())
+
+# A boxplot compares the distribution of log price per m²
+# between listings in canton centers and those outside
+
+sns.boxplot(x='is_center', y='log_price_per_m2', data=df,
+            hue='is_center', legend=False)
+plt.xticks([0, 1], ['Outside Center', 'City Center'])
+plt.title("Log price per m² — Center vs Outside")
+plt.xlabel("")
+plt.ylabel("Log price per m²")
+plt.show()
+
+"""The boxplot shows that listings in canton capital cities tend to have
+# a slightly higher median log price per m² compared to listings outside
+# the center. However, the distributions overlap significantly, suggesting
+# that while location (center vs. outside) has some effect on rental prices,
+# it is not a strong standalone predictor — consistent with the low R² value
+# observed in the regression model."""
+
+
+# A fourth model is added using the 'is_center' variable as a location proxy,
+# and the updated R² bar chart now includes location as a third factor group
+model_location = smf.ols('log_price_per_m2 ~ is_center', data=df).fit()
+
+models = ['Economic\n(GDP)', 'Housing\nCharacteristics', 'Location\n(Center)', 'Combined']
+r2_values = [model_gdp.rsquared, model_housing.rsquared,
+             model_location.rsquared, model_full.rsquared]
+
+plt.figure(figsize=(9, 5))
+bars = plt.bar(models, r2_values, color=['steelblue', 'coral', 'mediumpurple', 'mediumseagreen'])
+plt.ylabel("R² (Explained Variance)")
+plt.title("Q3: Which factors explain rental prices per m²?")
+plt.ylim(0, 0.15)
+
+# R² values are displayed on top of each bar for readability
+for bar, val in zip(bars, r2_values):
+    plt.text(bar.get_x() + bar.get_width()/2, val + 0.001,
+             f'{val:.3f}', ha='center', fontsize=11)
+
+plt.tight_layout()
+plt.show()
+
+"""This analysis extends the original question by introducing location as a third factor 
+group.A binary variable is_center was derived from the location_text column to indicate
+whether a listing is located in the canton's capital city."""
