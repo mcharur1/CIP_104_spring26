@@ -168,7 +168,7 @@ applied to reduce their influence."""
 ### Scatter plot ### RESEARCH QUESTION 1
 
 plt.figure(figsize=(6,4))
-sns.scatterplot(x=df['canton_gdp']/1000, y=df['log_price_per_m2'])
+sns.regplot(x=df['canton_gdp']/1000, y=df['log_price_per_m2'], scatter_kws={'s': 10, 'alpha': 1,'linewidths': 0.3, 'edgecolor': 'white'},line_kws={'color': 'red'})
 
 plt.xlabel("Canton GDP (Thousand CHF)")
 plt.ylabel("Log Price per m²")
@@ -236,7 +236,7 @@ plt.title("Median Price per m² vs GDP (Canton Level)")
 plt.show()
 
 
-### Margarita's plots
+### Margarita's plots ### RESEARCH QUESTION 2
 '''
 In order to look at price impacts three main drivers were divided into tiers so we could see better how prices behave across different groups 
 for each driver. Then a boxplot is created for each driver to show the spread of the data and whether it changes by groups within each driver.
@@ -620,6 +620,8 @@ plt.show()
 
 # A fourth model is added using the 'is_center' variable as a location proxy,
 # and the updated R² bar chart now includes location as a third factor group
+
+### RESEARCH QUESTION 3
 
 model_location = smf.ols('log_price_per_m2 ~ is_center', data=df).fit()
 model_gdp = smf.ols('log_price_per_m2 ~ canton_gdp', data=df).fit()
