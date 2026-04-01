@@ -165,14 +165,21 @@ applied to reduce their influence."""
 
 
 
-### Scatter plot ###
+### Scatter plot ### RESEARCH QUESTION 1
 
 plt.figure(figsize=(6,4))
-sns.scatterplot(x=df['canton_gdp'], y=df['log_price_per_m2'])
+sns.scatterplot(x=df['canton_gdp']/1000, y=df['log_price_per_m2'])
 
-plt.xlabel("Canton GDP")
+plt.xlabel("Canton GDP (Thousand CHF)")
 plt.ylabel("Log Price per m²")
-plt.title("GDP vs Log Price per m²")
+plt.title("Figure 1. GDP vs Log Price per m²")
+
+plt.savefig("../figures/figure_1_gdp_vs_log_price_per_m2.png",
+            dpi=300,
+            bbox_inches='tight',
+            facecolor='white',
+            transparent=False)
+
 plt.show()
 
 # The scatter plot suggests a weak positive relationship between canton GDP
@@ -243,7 +250,7 @@ high because of the high-demand location.
 
 All in all, although not logically what I expected, it seems that the most clear driver for price changes is living area.
 '''
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+fig, axes = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
 
 df['gdp_tiers'] = pd.cut(
     df['canton_gdp'],
@@ -255,7 +262,7 @@ ORDER = ['Low GDP\n(<80k)', 'Medium GDP\n(80–110k)', 'High GDP\n(>110k)']
 sns.boxplot(x='gdp_tiers', y='log_price_per_m2', data=df,
             order=ORDER, hue='gdp_tiers', legend=False, ax=axes[0, 0])
 axes[0, 0].set_title("Log price per m² by GDP tier", fontsize=12)
-axes[0, 0].set_xlabel("GDP tier")
+axes[0, 0].set_xlabel("GDP Tier")
 axes[0, 0].set_ylabel("Log price per m² (ln CHF/m²)")
 
 # Price by room count — bin rooms first so it's readable
@@ -263,8 +270,8 @@ df['rooms_tiers'] = pd.cut(df['rooms'], bins=[0,2,3,4,5,float('inf')],
                              labels=['≤2','3','4','5','6+'])
 sns.boxplot(x='rooms_tiers', y='log_price_per_m2', data=df,
             hue='rooms_tiers', legend=False, ax=axes[0, 1])
-axes[0, 1].set_title("Log price per m² by room count", fontsize=12)
-axes[0, 1].set_xlabel("Rooms")
+axes[0, 1].set_title("Log price per m² by room count tier", fontsize=12)
+axes[0, 1].set_xlabel("Room Count Tier")
 axes[0, 1].set_ylabel("")
 
 # Price by living area — bin area into readable brackets
@@ -272,14 +279,24 @@ df['area_tiers'] = pd.cut(df['living_area_m2'], bins=[0,50,80,120,float('inf')],
                             labels=['<50m²','50–80m²','80–120m²','>120m²'])
 sns.boxplot(x='area_tiers', y='log_price_per_m2', data=df,
             hue='area_tiers', legend=False, ax=axes[1, 0])
-axes[1, 0].set_title("Log price per m² by living area", fontsize=12)
-axes[1, 0].set_xlabel("Living area")
+axes[1, 0].set_title("Log price per m² by living area tier", fontsize=12)
+axes[1, 0].set_xlabel("Living area Tier")
 axes[1, 0].set_ylabel("")
 
 axes[1, 1].set_visible(False)
 
-plt.suptitle("What drives log price per m²?", fontsize=13, y=1.02)
 plt.tight_layout()
+plt.subplots_adjust(top=0.90)
+plt.suptitle("Figure 2. Distribution of Log Rental Prices by m² by Economic and Structural Factors",
+             fontsize=13,
+             y=0.96)
+
+plt.savefig("../figures/figure_2_distribution_log_price_by_economic_and_structural_factors.png",
+            dpi=300,
+            bbox_inches='tight',
+            facecolor='white',
+            transparent=False)
+
 plt.show()
 
 
@@ -616,7 +633,7 @@ r2_values = [model_gdp.rsquared, model_housing.rsquared,
 plt.figure(figsize=(9, 5))
 bars = plt.bar(models, r2_values, color=['steelblue', 'coral', 'mediumpurple', 'mediumseagreen'])
 plt.ylabel("R² (Explained Variance)")
-plt.title("Q3: Which factors explain rental prices per m²?")
+plt.title("Figure 3. Which factors explain log rental prices per m²?")
 plt.ylim(0, 0.15)
 
 # R² values are displayed on top of each bar for readability
@@ -625,6 +642,13 @@ for bar, val in zip(bars, r2_values):
              f'{val:.3f}', ha='center', fontsize=11)
 
 plt.tight_layout()
+
+plt.savefig("../figures/figure_3_r2_explained_variance.png",
+            dpi=300,
+            bbox_inches='tight',
+            facecolor='white',
+            transparent=False)
+
 plt.show()
 
 """This analysis extends the original question by introducing location as a third factor 
