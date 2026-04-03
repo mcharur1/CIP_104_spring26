@@ -3,6 +3,7 @@ import pickle
 import pandas as pd
 from catboost import CatBoostRegressor
 
+
 # =============================================================
 # LOAD MODEL AND ARTIFACTS
 # =============================================================
@@ -73,3 +74,6 @@ if st.button("Predict Rent"):
     st.success(f"### Estimated monthly rent: CHF {prediction:,.0f}")
     st.caption("⚠️ Prediction is based on listings from immobilier.ch (March 2026). "
                "Actual rent may vary depending on building age, floor, and condition.")
+
+
+
