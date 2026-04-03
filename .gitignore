@@ -20,5 +20,3 @@ catboost_info/
 *.log
 *.tmp
 
-# Data (opsiyonel - eğer raw data büyükse)
-data/raw/
