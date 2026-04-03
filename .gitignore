@@ -20,3 +20,8 @@ catboost_info/
 *.log
 *.tmp
 
+# Data
+data/raw/
+
+# Jupyter
+.ipynb_checkpoints/

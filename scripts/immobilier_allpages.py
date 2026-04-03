@@ -40,7 +40,7 @@ CANTONS = {
     "JU": "jura",
 }
 # ---------------------------
-# PARSERS (your original style)
+# PARSERS
 # ---------------------------
 def parse_price(txt):
     m = re.search(r"CHF\s*([\d'., ]+)", txt)
@@ -57,33 +57,33 @@ def parse_area(txt):
 
 def parse_rooms(txt):
     txt = txt.replace(",", ".")
-    # 1) "Apartment 2.5 rooms" gibi
+    # 1) Case: "Apartment 2.5 rooms"
     m = re.search(r"\b(\d+(?:\.\d+)?)\s*rooms?\b", txt, re.IGNORECASE)
     if m:
         return float(m.group(1))
-    # 2) bazen sonda "m 2 2.5" gibi tekrar ediyor -> en sondaki sayıyı al (metrekareden sonra)
+    # 2) Sometimes appears at the end like "m 2 2.5" -> take the last number (after area)
     m2 = re.search(r"(?:m\s*2|m²|m2)\s*(\d+(?:\.\d+)?)\b", txt, re.IGNORECASE)
     return float(m2.group(1)) if m2 else None
 
 def parse_location(txt):
-    # 1) Öncelik: 4 haneli posta kodu + şehir (varsa)
+    # 1) Priority: 4-digit postal code + city (if available)
     m = re.search(r"\b(\d{4}\s+[A-Za-zÀ-ÿ'’\- ]+)\b", txt)
     if m:
         loc = re.sub(r"\s{2,}", " ", m.group(1).strip())
         return loc
 
-    # 2) Fallback: "rooms" kelimesinden sonra gelen ilk konum parçası
-    # Örn: "... Apartment 2.5 rooms Zürich, Neunbrunnenstrasse 188 59 m 2 2.5"
+    # 2) Fallback: first location segment after the word "rooms"
+    # Example: "... Apartment 2.5 rooms Zürich, Neunbrunnenstrasse 188 59 m 2 2.5"
     m2 = re.search(r"rooms?\s+([^,]+)", txt, re.IGNORECASE)
     if not m2:
         return None
 
     loc = m2.group(1).strip()
 
-    # temizle: sondaki gereksiz kelimeler/boşluklar
+    # clean: remove extra spaces / unwanted trailing text
     loc = re.sub(r"\s{2,}", " ", loc)
 
-    # çok saçma uzun string gelirse kırp (ör. tüm cümleyi alırsa)
+    #  if the string is too long (e.g., full sentence), truncate it
     if len(loc) > 40:
         loc = loc[:40].rstrip()
 
@@ -191,10 +191,8 @@ df.to_csv(out_file, index=False)
 print("\nSaved ->", out_file, "| rows:", len(df))
 print(df.head(10))
 
-#--------------read
-
-df = pd.read_csv("/Users/sedadulger/PyCharmProjects/CIP/project/data/processed/"
-                 "immobilier_all_cantons_allpages_snapshot_p20.csv")
+# -------------- read
+df = pd.read_csv(out_file)
 print(df.dtypes)
 print(df.shape)
 print(df.isna().sum())
@@ -219,3 +217,4 @@ print(df["canton"].nunique())
 # price_chf         0
 # listing_url       0
 # source            0
+
