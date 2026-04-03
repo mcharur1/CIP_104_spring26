@@ -1,2 +1,24 @@
+# macOS
 .DS_Store
+
+# IDE
 .idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Models / ML artifacts
+models/
+*.cbm
+
+# CatBoost logs
+catboost_info/
+
+# Logs / temp
+*.log
+*.tmp
+
+# Data (opsiyonel - eğer raw data büyükse)
+data/raw/
