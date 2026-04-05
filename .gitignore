@@ -25,3 +25,6 @@ data/raw/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# IDE
+.idea/
