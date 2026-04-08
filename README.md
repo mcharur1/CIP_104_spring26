@@ -31,7 +31,7 @@ CIP_FS2026_104/
 └── README.md                        # This file
 
 ## Data Sources
-- **Immobilier.ch**: Property listings scraped using Selenium and BeautifulSoup
+- **Immobilier.ch**: Property listings scraped using Selenium and BeautifulSoup (March 2026)
 - **Swiss Federal Statistical Office**: GDP per capita by canton (2022)
 
 ## Technologies Used
