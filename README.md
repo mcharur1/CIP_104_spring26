@@ -68,14 +68,11 @@ python scripts/gdpdataset.py
 ## Individual Contributions
 
 ### Margarita Arias - [margarita.arias@stud.hslu.ch]
-- data_processing.py - Dataset merging and data type validation
-- data_processing.py -Figure 2 code
-- data_processing.py - Figure saving code
-- GitHub Repository creation and structuring
-- Report documentation (Data Acquisition section and EDA section)
-- ReadMe
+- Contribution 1
+- Contribution 2
+- Contribution 3
 
-### Seda Dulger - [seda.dulger@stud.hslu.ch]
+### Seda Dulger - [havva.duelger@stud.hslu.ch]
 - Contribution 1
 - Contribution 2
 - Contribution 3
@@ -90,21 +87,5 @@ python scripts/gdpdataset.py
 - Contribution 2
 - Contribution 3
 
-### Student 2 - [Name]
-- Data cleaning and transformation (`data_processing.py`)
-- GDP dataset integration (`gdpdataset.py`)
-- Population data processing
-
-### Student 3 - [Name]
-- Statistical modeling (`model.py`)
-- Visualization development (all figures)
-- Final documentation and reporting
-
-## Contact
-For questions or collaboration:
-- Student 1: [email]
-- Student 2: [email]
-- Student 3: [email]
-
 ---
-*Last updated: April 2026*
+*Last updated: April 8 2026*
