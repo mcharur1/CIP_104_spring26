@@ -1,34 +1,36 @@
 # CIP_FS2026_104 - GDP and Apartment Rental Prices Across Swiss Cantons 
 
 ## Repository Structure
+```text
 CIP_FS2026_104/
 ├── data/
-│   ├── raw/                          # Original data files
-│   │   ├── orijinal.xlsx            # Raw Immobilier.ch scraped data
-│   │   └── gdp_percapita_canton_2022.xlsx  # GDP data by canton
-│   └── processed/                    # Cleaned and merged datasets
+│   ├── raw/                                        # Original data files
+│   │   ├── orijinal.xlsx                           # Original DGP by canton  # CAN WE REMOVE??
+│   │   └── gdp_percapita_canton_2022.xlsx          # GDP data by canton
+│   └── processed/                                  # Processed datasets
 │       ├── canton_gdp_2022_clean.csv
 │       └── immobilier_all_cantons_allpages_snapshot_p20.csv
 ├── scripts/
-│   ├── immobilier.py                # Initial scraper
-│   ├── immobilier_allpages.py       # Full multi-page scraper with Selenium
-│   ├── data_processing.py           # Data cleaning and transformation
-│   ├── gdpdataset.py                # GDP data processing
-│   ├── population_by_canton_2022.py # Population data integration
-│   ├── model.py                     # Statistical analysis
-│   ├── card_preview.py              # Visualization helper
-│   └── rooms_location_preview.py    # Location-based analysis
-├── Figures/
+│   ├── immobilier.py                  # Initial scraper (subset one canton, one page)
+│   ├── immobilier_allpages.py         # Full scraper (all cantons and pages)
+│   ├── data_processing.py             # Data cleaning and transformation
+│   ├── gdpdataset.py                  # GDP data cleaning
+│   ├── population_by_canton_2022.py   # Future outlook population dataset  ## CAN WE REMOVE??
+│   ├── model.py                       #  analysis
+│   ├── card_preview.py                # Single listing variable extraction functions
+│   └── rooms_location_preview.py      # Location-based analysis
+├── Figures/                           # Output from data_processing.py included in report
 │   ├── figure_1_gdp_vs_log_price_per_m2.png
 │   ├── figure_2_distribution_log_price_by_economic_and_structural_type.png
 │   └── figure_3_r2_explained_variance.png
 ├── documentation/
-│   ├── Feasibility_Report.docx      # Initial project proposal
+│   ├── Feasibility_Report.docx      
 │   ├── CIP_FS2026_104_Project_Documentation.docx  # Final report
 │   └── CIP_team_agreement.docx
-├── app.py                           # Main application entry point
-├── requirements.txt                 # Python dependencies
-└── README.md                        # This file
+├── app.py                           
+├── requirements.txt                   # Python dependencies
+└── README.md                          # This file
+```
 
 ## Data Sources
 - **Immobilier.ch**: Property listings scraped using Selenium and BeautifulSoup (March 2026)
@@ -45,13 +47,13 @@ CIP_FS2026_104/
 
 ### 1. Data Collection
 ```bash
-# Scrape Immobilier.ch (all pages)
+# Scrape Immobilier.ch (all cantons, all pages)
 python scripts/immobilier_allpages.py
 ```
 
 ### 2. Data Processing and Analysis
 ```bash
-# Clean and merge datasets and generate visualizations
+# Merge datasets, clean, and generate machine learning models
 python scripts/data_processing.py
 
 # Clean GDP data
