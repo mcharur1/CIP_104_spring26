@@ -5,20 +5,19 @@
 CIP_FS2026_104/
 ├── data/
 │   ├── raw/                                        # Original data files
-│   │   ├── orijinal.xlsx                           # Original DGP by canton  # CAN WE REMOVE??
-│   │   └── gdp_percapita_canton_2022.xlsx          # GDP data by canton
+│   │   ├── orijinal.xlsx                           # Original GDP document downloaded from Swiss Federal Statistical Office
+│   │   └── gdp_percapita_canton_2022.xlsx          # GDP data by canton after manipulating orijinal.xlsx in Excel
 │   └── processed/                                  # Processed datasets
-│       ├── canton_gdp_2022_clean.csv
-│       └── immobilier_all_cantons_allpages_snapshot_p20.csv
+│       ├── canton_gdp_2022_clean.csv                             # gdpdataset.py output
+│       └── immobilier_all_cantons_allpages_snapshot_p20.csv      #immobilier_allpages.py output
 ├── scripts/
-│   ├── immobilier.py                  # Initial scraper (subset one canton, one page)
-│   ├── immobilier_allpages.py         # Full scraper (all cantons and pages)
-│   ├── data_processing.py             # Data cleaning and transformation
+│   ├── immobilier.py                  # Testing code for initial scraper (subset one canton, one page)
+│   ├── immobilier_allpages.py         # Main Script 1: Full scraper (all cantons and pages)
+│   ├── data_processing.py             # Main Script 2: Data cleaning and transformation
 │   ├── gdpdataset.py                  # GDP data cleaning
-│   ├── population_by_canton_2022.py   # Future outlook population dataset  ## CAN WE REMOVE??
-│   ├── model.py                       #  analysis
-│   ├── card_preview.py                # Single listing variable extraction functions
-│   └── rooms_location_preview.py      # Location-based analysis
+│   ├── model.py                       # Main Script 3:code for prediction models
+│   ├── card_preview.py                # Testing code for single listing variable extraction functions
+│   └── rooms_location_preview.py      # Testing code for multi-page scraping
 ├── figures/                           # Output from data_processing.py included in report
 │   ├── figure_1_gdp_vs_log_price_per_m2.png
 │   ├── figure_2_distribution_log_price_by_economic_and_structural_type.png
@@ -27,7 +26,7 @@ CIP_FS2026_104/
 │   ├── Feasibility_Report.docx      
 │   ├── CIP_FS2026_104_Project_Documentation.docx  # Final report
 │   └── CIP_team_agreement.docx
-├── app.py                           
+├── app.py                             # Used to run Streamlit application
 ├── requirements.txt                   # Python dependencies
 └── README.md                          # This file
 ```
@@ -70,24 +69,33 @@ python scripts/gdpdataset.py
 ## Individual Contributions
 
 ### Margarita Arias - [margarita.arias@stud.hslu.ch]
-- Contribution 1
-- Contribution 2
-- Contribution 3
+- Exporation of web scraping component of the project to collect housing listing data from the source website.
+- Data processing: Merging datasets to create final dataframe.
+- Supported the data exploration process and machine learning model generation.
+- Creation of feasibility and final report
+- Creation, structuring, and maintenance of GitHub repository.
 
-### Seda Dulger - [havva.duelger@stud.hslu.ch]
-- Contribution 1
-- Contribution 2
-- Contribution 3
+### Havva Seda Dulger - [havva.duelger@stud.hslu.ch]
+- Implemented the web scraping component of the project to collect housing listing data from the source website.
+- Data processing: Outlier handling.
+- Supported the data exploration process and machine learning model generation.
+- Contributed to the development of the Streamlit interface.
+- Creation of feasibility and final report.
+- Creation, structuring, and maintenance of GitHub repository.
 
 ### Michael Ryan - [michael.ryan@stud.hslu.ch]
-- Contribution 1
-- Contribution 2
-- Contribution 3
+- Exporation of web scraping component of the project to collect housing listing data from the source website.
+- Data processing: data cleaning.
+- Supported the data exploration process and machine learning model generation.
+- Creation of feasibility and final report
+- Creation, structuring, and maintenance of GitHub repository.
 
 ### Svenja Ryf - [svenja.ryf@stud.hslu.ch]
-- Contribution 1
-- Contribution 2
-- Contribution 3
+- Exporation of web scraping component of the project to collect housing listing data from the source website.
+- Data Processing: Check and handling missing values.
+- Supported the data exploration process and machine learning model generation.
+- Creation of feasibility and final report
+- Creation, structuring, and maintenance of GitHub repository.
 
 ## AI Disclaimer
 AI was used in this project to debug Python syntax errors, deepening classroom knowledge, and improving report paragraph construction. AI was <u>_**not**_</u> used to produce invented data, results, interpretations or report content. 
