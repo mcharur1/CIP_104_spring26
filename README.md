@@ -89,5 +89,8 @@ python scripts/gdpdataset.py
 - Contribution 2
 - Contribution 3
 
+## AI Disclaimer
+AI was used in this project to debug Python syntax errors, deepening classroom knowledge, and improving report paragraph construction. AI was <u>_**not**_</u> used to produce invented data, results, interpretations or report content. 
+
 ---
 *Last updated: April 8 2026*
