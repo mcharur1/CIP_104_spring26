@@ -19,7 +19,7 @@ CIP_FS2026_104/
 │   ├── model.py                       #  analysis
 │   ├── card_preview.py                # Single listing variable extraction functions
 │   └── rooms_location_preview.py      # Location-based analysis
-├── Figures/                           # Output from data_processing.py included in report
+├── figures/                           # Output from data_processing.py included in report
 │   ├── figure_1_gdp_vs_log_price_per_m2.png
 │   ├── figure_2_distribution_log_price_by_economic_and_structural_type.png
 │   └── figure_3_r2_explained_variance.png
